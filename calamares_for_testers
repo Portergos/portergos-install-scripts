@@ -8,53 +8,104 @@ _check_internet_connection(){
     ping -c 1 8.8.8.8 >& /dev/null   # ping Google's address
 }
 
-_update_scripts()
-{
+_update_scripts(){
 
-wget https://raw.githubusercontent.com/endeavouros-team/install-scripts/master/cleaner_script.sh
-wget https://raw.githubusercontent.com/endeavouros-team/install-scripts/master/update-mirrorlist
-rm -rf install
-wget https://github.com/endeavouros-team/liveuser-desktop-settings/raw/master/install
-wget https://github.com/endeavouros-team/install-scripts/raw/master/calamares_switcher
-wget https://github.com/endeavouros-team/install-scripts/raw/master/pacstrap_endeavouros
-chmod +x cleaner_script.sh update-mirrorlist install calamares_switcher pacstrap_endeavouros
-sudo mv cleaner_script.sh update-mirrorlist calamares_switcher pacstrap_endeavouros /usr/bin
+    local URL="https://raw.githubusercontent.com/endeavouros-team/install-scripts/master"
 
-}
+    local scripts_array=(
+    cleaner_script.sh chrooted_cleaner_script.sh update-mirrorlist calamares_switcher pacstrap_calamares
+)
 
-_cal_github_version()
-{
-rm -rf cal_github_version.txt
-curl https://github.com/endeavouros-team/mirrors/releases/tag/mirror3-developer |grep calamares_current |sed s'/^.*calamares_current/calamares_current/'g | sed s'/pkg.tar.xz.*/pkg.tar.xz/'g |tail -1 >cal_github_version.txt
-}
-
-_cal_installed_version()
-{
-rm -rf cal_installed_version.txt
-pacman -Q |grep calamares_current |sed s'/ /-/' |sed s'/$/-any.pkg.tar.xz/' >cal_installed_version.txt
+    local download
+    for scripts in "${scripts_array[@]}"; do
+        wget $URL/$scripts
+        chmod +x $scripts
+        sudo mv $scripts /usr/bin
+    done
 
 }
 
-_compare_cal_versions()
+_cal_version(){
 
-{
+rm -rf cal_github_version.txt cal_installed_version.txt
+
+local URL_TAG="https://github.com/endeavouros-team/mirrors/releases/tag/endeavouros_calamares"
+local PKG_NAME="calamares_current"
+
+# ? and double quotes to escape "$" variable using sed
+
+curl $URL_TAG |grep "$PKG_NAME" |sed s"?^.*$PKG_NAME?$PKG_NAME?"g | sed s'/pkg.tar.zst.*/pkg.tar.zst/'g |tail -1 >cal_github_version.txt
+
+pacman -Q |grep "$PKG_NAME" |sed s'/ /-/' |sed s'/$/-any.pkg.tar.zst/' >cal_installed_version.txt
+
+local URL_DOWNLOAD="https://github.com/endeavouros-team/mirrors/releases/download/endeavouros_calamares"
 
 diff cal_github_version.txt cal_installed_version.txt
 
 if [ $? != 0 ]
     then
-        wget https://github.com/endeavouros-team/mirrors/releases/download/mirror3-developer/$(cat cal_github_version.txt)
+        wget $URL_DOWNLOAD/$(cat cal_github_version.txt)
         sudo pacman -U $(cat cal_github_version.txt) --noconfirm
 
 fi
 
 }
 
-_welcome_screen()
+_cal_testing_version(){
 
-{
+local URL_TAG="https://github.com/endeavouros-team/mirrors/releases/tag/endeavouros_calamares"
+local PKG_NAME="calamares_test"
 
-printf "$BGreen \n Do you want to check for calamares and scripts updates? (Recommended if you have internet) (1=yes, 2=no / Default 1)"
+# ? and double quotes to escape "$" variable using sed
+curl $URL_TAG |grep "$PKG_NAME" >/dev/null
+if [[ $? == 0 ]]
+    then
+        curl $URL_TAG |grep "$PKG_NAME" |sed s"?^.*$PKG_NAME?$PKG_NAME?"g | sed s'/pkg.tar.zst.*/pkg.tar.zst/'g |tail -1 >cal_github_version.txt
+        local URL_DOWNLOAD="https://github.com/endeavouros-team/mirrors/releases/download/endeavouros_calamares"
+        wget $URL_DOWNLOAD/$(cat cal_github_version.txt)
+        sudo pacman -Rns calamares_current --noconfirm
+        sudo pacman -U $(cat cal_github_version.txt) --noconfirm
+    else
+        echo "There are no testing versions available"
+        exit
+fi
+
+}
+
+_welcome_screen(){
+
+local msg1="Do you want to check for TESTING calamares version? ( (1=no, 2=yes / Default 1)"
+printf "$BGreen \n $msg1"
+
+read answer 
+
+if [ "$answer" != "2" ]; then answer="1"; fi
+
+case $answer in
+
+    1)  
+    clear
+    _update_scripts
+    _cal_version
+    ;;
+
+    2)
+    clear
+    _update_scripts
+    _cal_testing_version
+    ;;
+
+    * )
+    ;;
+
+esac
+
+}
+
+_check_testing_calamares(){
+
+local msg1="Do you want to update calamares or install a testing version? (1=update, 2=testing / Default 1)"
+printf "$BGreen \n $msg1"
 
 read answer 
 
@@ -66,11 +117,14 @@ case $answer in
     clear
     _update_scripts
     clear
-    _compare_cal_versions
+    _cal_version
     ;;
 
     2)
-    exit
+    clear
+    _update_scripts
+    clear
+    _cal_testing_version
     ;;
 
     * )
@@ -80,11 +134,11 @@ esac
 
 }
 
-_run_calamares()
-{
+_run_calamares(){
 
+local msg2="Do you want to run calamares? (1=yes, 2=no / Default 1)"
 
-printf "$BYellow \n Do you want to run calamares? (1=yes, 2=no / Default 1)"
+printf "$BYellow \n $msg2"
 
 read run_me 
 
@@ -111,6 +165,8 @@ esac
 _check_internet_connection && {
     clear
     _welcome_screen
+    #_cal_testing_version
 }
 clear
-_run_calamares
+#_run_calamares
+/usr/bin/calamares_switcher

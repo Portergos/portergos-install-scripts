@@ -20,6 +20,7 @@
     - xorg-xkill
     - xorg-xrandr
     - xorg-xinput
+    - xorg-xrandr
     - xdg-utils
     - xdg-user-dirs
     - xdg-user-dirs-gtk
@@ -366,7 +367,7 @@
 - name: "Nvidia Drivers"
   description: "Proprietary Nvidia Driver: not for legacy or hybrid cards!"
   hidden: false
-  selected: false
+  selected: true
   critical: false
   packages:
     - nvidia
