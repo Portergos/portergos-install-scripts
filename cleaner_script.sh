@@ -6,6 +6,10 @@
 
 # Super ugly command now :(
 # If multiples partitions are used
+
+#if [ -f ~/.agenda ];then echo sim; else echo no; fi
+
+
 chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
 
 arch_chroot(){
@@ -33,12 +37,10 @@ _copy_files(){
 
     local _files_to_copy=(
 
-    /etc/os-release
     /etc/lightdm/*
     /etc/sddm.conf.d/kde_settings.conf
     /etc/pacman.d/hooks/lsb-release.hook
     /etc/pacman.d/hooks/os-release.hook
-    /etc/lsb-release
     /etc/default/grub
 
 )
