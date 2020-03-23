@@ -92,45 +92,8 @@ _clean_archiso(){
 _clean_offline_packages(){
 
     local _packages_to_remove=( 
-        qt5ct
-        qt5-base
-        calamares_current
-        arch-install-scripts
-        qt5-svg
-        qt5-webengine
-        kpmcore
-        kdbusaddons 
-        kcrash
-        qt5-declarative
-        squashfs-tools
-        ddrescue
-        dd_rescue
-        testdisk
-        qt5-tools
-        kparts
-        polkit-qt5
-        qt5-xmlpatterns
-        python-pyqt5
-        python-sip-pyqt5
-        pyqt5-common
-        extra-cmake-modules 
-        cmake
-        elinks
-        yaml-cpp
-        syslinux
-        solid
-        kwidgetsaddons
-        kservice
-        ki18n
-        kcoreaddons
-        kconfig
-        clonezilla
-        partclone
-        partimage
-        ckbcomp
-        gnome-boxes
-        xcompmgr
-        epiphany
+    calamares_current
+    calamares_test
 )
     local xx
     # @ does one by one to avoid errors in the entire process
