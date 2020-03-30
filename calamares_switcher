@@ -4,6 +4,13 @@
 
 source ~/scripts/.portergos_utility
 
+_get_size(){
+
+width=$(echo $(($(xrandr | grep 'current' | sed -e 's/^.*current//' |awk '{ print $1 }')/4)))
+height=$(echo $(($(xrandr | grep 'current' | sed -e 's/^.*current//' -e 's/,.*//' |awk '{ print $3 }')/4)))
+
+}
+
 _online(){
 
 sudo cp -praf /usr/share/calamares/settings.conf_vanilla /usr/share/calamares/settings.conf
@@ -33,7 +40,7 @@ cat /home/liveuser/portergos-install.log | curl -F 'f:1=<-' ix.io
 }
 choose_method(){
 
-ANSWER=$(yad --width=400 --height=100 --center --on-top --title="Please choose an option for installation" --list --separator="" --column="Install Portergos" "CLI installer (Offline)" "Calamares Online (choose desktop - Arch vanilla)" "Calamares Offline")
+ANSWER=$(yad --width="$width" --height="$height" --center --on-top --title="Please choose an option for installation" --list --separator="" --column="Install Portergos" "CLI installer (Offline)" "Calamares Online (choose desktop - Arch vanilla)" "Calamares Offline")
 
     if [[ $ANSWER == "CLI installer (Offline)" ]]; then _cli; fi
     if [[ $ANSWER == "Calamares Offline" ]]; then _offline; run_calamares; fi
