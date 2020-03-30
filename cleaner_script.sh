@@ -10,7 +10,21 @@
 #if [ -f ~/.agenda ];then echo sim; else echo no; fi
 
 
-chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
+#chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
+
+if [ -f /tmp/chrootpath.txt ]
+then 
+    chroot_path=$(cat /tmp/chrootpath.txt)
+else 
+    chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
+fi
+
+if [ -f /tmp/new_username.txt ]
+then
+    NEW_USER=$(cat /tmp/new_username.txt)
+else
+    NEW_USER=$(compgen -u |tail -n -1)
+fi
 
 arch_chroot(){
 # Use chroot not arch-chroot because of the way calamares mounts partitions
