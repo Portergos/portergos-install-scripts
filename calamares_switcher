@@ -49,4 +49,5 @@ ANSWER=$(yad --width="$width" --height="$height" --center --on-top --title="Plea
 }
 
 # STARTS HERE
+_get_size
 choose_method
