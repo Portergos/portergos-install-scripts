@@ -2,9 +2,11 @@
 
 # Easiest way, as long everything is done just overwrite the file
 
+source ~/scripts/.portergos_utility
+
 _online(){
 
-sudo cp -praf /usr/share/calamares/settings.conf_online /usr/share/calamares/settings.conf
+sudo cp -praf /usr/share/calamares/settings.conf_vanilla /usr/share/calamares/settings.conf
 sudo cp -praf /usr/share/calamares/modules/packages.conf_online /usr/share/calamares/modules/packages.conf
 sudo cp -praf /usr/share/calamares/modules/welcome.conf_online /usr/share/calamares/modules/welcome.conf
 
@@ -19,7 +21,7 @@ sudo cp -praf /usr/share/calamares/modules/welcome.conf_offline /usr/share/calam
 }
 
 _cli(){
-:
+$TERMINAL -e sh -c "sudo /offline_installer/installer"
 
 }
 
@@ -33,7 +35,7 @@ choose_method(){
 
 ANSWER=$(yad --width=400 --height=100 --center --on-top --title="Please choose an option for installation" --list --separator="" --column="Install Portergos" "CLI installer (Offline)" "Calamares Online (choose desktop - Arch vanilla)" "Calamares Offline")
 
-    if [[ $ANSWER == "CLI installer (Offline)" ]]; then _cli; run_calamares; fi
+    if [[ $ANSWER == "CLI installer (Offline)" ]]; then _cli; fi
     if [[ $ANSWER == "Calamares Offline" ]]; then _offline; run_calamares; fi
     if [[ $ANSWER == "Calamares Online (choose desktop - Arch vanilla)" ]]; then _online; run_calamares; fi
 
