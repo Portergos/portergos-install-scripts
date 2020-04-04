@@ -12,6 +12,9 @@
 
 #chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
 
+    chroot_path=$(cat /tmp/chrootpath.txt)
+    NEW_USER=$(cat /tmp/new_username.txt)    
+_tmp(){
 if [ -f /tmp/chrootpath.txt ]
 then 
     chroot_path=$(cat /tmp/chrootpath.txt)
@@ -25,6 +28,7 @@ then
 else
     NEW_USER=$(compgen -u |tail -n -1)
 fi
+}
 
 arch_chroot(){
 # Use chroot not arch-chroot because of the way calamares mounts partitions
