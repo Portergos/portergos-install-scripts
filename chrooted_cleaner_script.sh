@@ -13,6 +13,9 @@
 #getent passwd |grep 1000 |sed s'/:.*//'
 #compgen -u |tail -n -1
 
+    chroot_path=$(cat /tmp/chrootpath.txt)
+    NEW_USER=$(cat /tmp/new_username.txt)    
+_tmp(){
 if [ -f /tmp/chrootpath.txt ]
 then 
     chroot_path=$(cat /tmp/chrootpath.txt)
@@ -26,6 +29,7 @@ then
 else
     NEW_USER=$(compgen -u |tail -n -1)
 fi
+}
 
 _check_internet_connection(){
     #ping -c 1 8.8.8.8 >& /dev/null   # ping Google's address
