@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#!/bin/bash
+
 # Easiest way, as long everything is done just overwrite the file
 
 source ~/scripts/.portergos_utility
@@ -8,6 +10,8 @@ _get_size(){
 
 #divide by 3 800x600
 # divide by 4 for 1280x768
+
+INSTALL_LOG_FILE="/home/liveuser/portergos-install.log"
 
 width=$(echo $(($(xrandr | grep 'current' | sed -e 's/^.*current//' |awk '{ print $1 }')/3)))
 height=$(echo $(($(xrandr | grep 'current' | sed -e 's/^.*current//' -e 's/,.*//' |awk '{ print $3 }')/3)))
@@ -36,12 +40,22 @@ $TERMINAL -e sh -c "sudo /offline_installer/installer"
 }
 
 run_calamares(){
+touch $INSTALL_LOG_FILE 
+cat <<EOF > $INSTALL_LOG_FILE
+############## $INSTALL_LOG_FILE
+############## UTC: $(date -u "+%Y-%m-%d %H:%M")
+EOF
+sh -c "pkexec /usr/bin/calamares -d >> /home/liveuser/portergos-install.log" &
+tilix -e "watch -tn1 tail $INSTALL_LOG_FILE"
 
-pkexec /usr/bin/calamares -d > /home/liveuser/portergos-install.log
+#find * -type d -empty
+# PACMAN_LOG="$(/usr/bin/ls -1 /tmp/calamares-root-*/var/log/pacman.log 2>/dev/null | tail -n 1)"
+#local INSTALL_LOG_FILE=./postergos-install.log
+
 cat /home/liveuser/portergos-install.log | curl -F 'f:1=<-' ix.io
 
 }
-choose_method(){
+_choose_method(){
 
 ANSWER=$(yad --width="$width" --height="$height" --center --on-top --title="Please choose an option for installation" --list --separator="" --column="Install Portergos" "CLI installer (Offline)" "Calamares Online (choose desktop - Arch vanilla)" "Calamares Offline")
 
@@ -53,4 +67,4 @@ ANSWER=$(yad --width="$width" --height="$height" --center --on-top --title="Plea
 
 # STARTS HERE
 _get_size
-choose_method
+_choose_method
