@@ -1,40 +1,10 @@
 #!/bin/bash
 
-# New version of cleaner_script
-# Made by @fernandomaroto and @manuel 
+# Made by @fernandomaroto for Portergos
 # Any failed command will just be skiped, error message may pop up but won't crash the install process
-# Net-install creates the file /tmp/run_once in live environment (need to be transfered to installed system) so it can be used to detect install option
 
-    #local NEW_USER=$(head -n1 /etc/sudoers.d/10-installer | awk '{print $1}')
-#NEW_USER=$(compgen -u |tail -n -1)
-#NEW_USER=$(ls $chroot_path/home |grep -v "lost+found")
-#NEW_USER=$(head -n1 /etc/sudoers.d/10-installer | awk '{print $1}')
-#NEW_USER=$(cat /tmp/$chroot_path/etc/passwd | grep "/home" |cut -d: -f1 |head -1)
-#getent passwd |grep 1000 |sed s'/:.*//'
-#compgen -u |tail -n -1
-
-    chroot_path=$(cat /tmp/chrootpath.txt)
-    NEW_USER=$(cat /tmp/new_username.txt)    
-_tmp(){
-if [ -f /tmp/chrootpath.txt ]
-then 
-    chroot_path=$(cat /tmp/chrootpath.txt)
-else 
-    chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
-fi
-
-if [ -f /tmp/new_username.txt ]
-then
-    NEW_USER=$(cat /tmp/new_username.txt)
-else
-    NEW_USER=$(compgen -u |tail -n -1)
-fi
-}
-
-_check_internet_connection(){
-    #ping -c 1 8.8.8.8 >& /dev/null   # ping Google's address
-    curl --silent --connect-timeout 8 https://8.8.8.8 > /dev/null
-}
+chroot_path=$(cat /tmp/chrootpath.txt)
+NEW_USER=$(cat /tmp/new_username.txt)    
 
 _vbox(){
 
@@ -94,10 +64,12 @@ _clean_archiso(){
         /etc/udev/rules.d/81-dhcpcd.rules
         /usr/bin/{calamares_switcher,cleaner_script.sh}
         /home/$NEW_USER/.config/qt5ct
-        /home/$NEW_USER/{.xinitrc,.xsession,.xprofile}
-        /root/{.xinitrc,.xsession,.xprofile}
-        /etc/skel/{.xinitrc,.xsession,.xprofile}
+
     )
+        # maybe inject the config instead of copying it? Sddm can work with .xinitrc file, slim requires it
+        # /home/$NEW_USER/{.xinitrc,.xsession,.xprofile}
+        # /root/{.xinitrc,.xsession,.xprofile}
+        # /etc/skel/{.xinitrc,.xsession,.xprofile}
 
     local xx
 
@@ -120,11 +92,74 @@ _clean_offline_packages(){
 
 }
 
-_endeavouros(){
+do_clean_offline_installer(){
+
+# cli installer
+rm -rf /vomi 2>>/tmp/.errlog
+#rm -rf ${BYPASS} 2>>/tmp/.errlog
+rm -rf /source 2>>/tmp/.errlog
+rm -rf /src 2>>/tmp/.errlog
+rmdir /bypass 2>>/tmp/.errlog
+rmdir /src 2>>/tmp/.errlog
+rmdir /source 2>>/tmp/.errlog
+rm -rf /offline_installer
+
+# calamares installer
+# not ready yet
+pacman -Rns calamares_offline --noconfirm
+
+}
+
+do_portergos(){
+
+do_clean_offline_installer
+
+export DISPLAY=:0.0
+dbus-launch dconf load / < /etc/skel/dconf.conf
+sudo -H -u $NEW_USER bash -c 'dbus-launch dconf load / < /etc/skel/dconf.conf'
+rm /home/$NEW_USER/dconf.conf
+rm /etc/skel/dconf.conf
+
+#conky and installer icons
+sed -i "/\${font sans:bold:size=8}INSTALLERS \${hr 2}/d" /home/$NEW_USER/.conky/i3_shortcuts/Gotham
+sed -i "/mod+i\${goto 120}= Portergos installer/d" /home/$NEW_USER/.conky/i3_shortcuts/Gotham
+sed -i "/\${font sans:bold:size=8}INSTALLERS \${hr 2}/d" /home/$NEW_USER/.conky/xfce_shortcuts/Gotham
+sed -i "/mod+i\${goto 120}= Portergos installer/d" /home/$NEW_USER/.conky/xfce_shortcuts/Gotham
+sed -i "/<Filename>offline_installer.desktop<\/Filename>/d" /home/$NEW_USER/.config/menus/xfce-applications.menu
+
+sed -i "/\${font sans:bold:size=8}INSTALLERS \${hr 2}/d" /root/.conky/i3_shortcuts/Gotham
+sed -i "/mod+i\${goto 120}= Portergos installer/d" /root/.conky/xfce_shortcuts/Gotham
+sed -i "/\${font sans:bold:size=8}INSTALLERS \${hr 2}/d" /root/.conky/i3_shortcuts/Gotham
+sed -i "/mod+i\${goto 120}= Portergos installer/d" /root/.conky/xfce_shortcuts/Gotham
+sed -i "/<Filename>offline_installer.desktop<\/Filename>/d" /root/.config/menus/xfce-applications.menu
+
+#.config/sxhkd
+sed -i "/super + i/,/installer/"'d' /home/$NEW_USER/.config/sxhkd/sxhkdrc
+sed -i "/super + i/,/installer/"'d' /root/.config/sxhkd/sxhkdrc
+
+# Clean specific installer stuff
+rm -rf /offline_installer
+rm -rf /etc/skel/.local/share/applications/offline_installer.desktop
+rm -rf /home/$NEW_USER/.local/share/applications/offline_installer.desktop
+
+rm -rf /home/$NEW_USER/{.xinitrc,.xsession} 2>>/tmp/.errlog
+rm -rf /home/$NEW_USER/.portergos_configs/{.xinitrc_i3,.xinitrc_xfce4,.xinitrc_openbox,.welcome_screen} 2>>/tmp/.errlog
+rm -rf /root/{.xinitrc,.xsession} 2>>/tmp/.errlog
+rm -rf /root/.portergos_configs/{.xinitrc_i3,.xinitrc_xfce4,.xinitrc_openbox,.welcome_screen} 2>>/tmp/.errlog
+rm -rf /etc/skel/{.xinitrc,.xsession} 2>>/tmp/.errlog
+rm -rf /etc/skel/.portergos_configs/{.xinitrc_i3,.xinitrc_xfce4,.xinitrc_openbox,.welcome_screen} 2>>/tmp/.errlog
+
+sed -i "/if/,/fi/"'s/^/#/' /home/$NEW_USER/.bash_profile
+sed -i "/if/,/fi/"'s/^/#/' /home/$NEW_USER/.zprofile
+sed -i "/if/,/fi/"'s/^/#/' /root/.bash_profile
+sed -i "/if/,/fi/"'s/^/#/' /root/.zprofile
 
 
-    sed -i "/if/,/fi/"'s/^/#/' /root/.bash_profile
-    sed -i "/if/,/fi/"'s/^/#/' /home/$NEW_USER/.bash_profile
+# Grub still needs polishing. Looking for a solution when using calamares for multiple distros
+sed -i "s/menuentry 'Arch Linux' - /menuentry 'Arch Linux' - LTS/"g /boot/grub/grub.cfg 2>/dev/null
+
+# Split advanced options at grub menu
+echo "GRUB_DISABLE_SUBMENU=y" >> /etc/default/grub >/dev/null
 
 }
 
@@ -175,11 +210,8 @@ _clean_up(){
 
 _check_install_mode
 _common_systemd
-_endeavouros
+do_portergos
 _vbox
 _clean_up
-
-ls / |grep "crypto_keyfile.bin" >/dev/null
-if [ "$?" != 0 ]; then _non_encrypted; fi
 
 rm -rf /usr/bin/{calamares_switcher,cleaner_script.sh,chrooted_cleaner_script.sh,calamares_for_testers}
