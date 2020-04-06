@@ -8,6 +8,7 @@ chroot_path=$(cat /tmp/chrootpath.txt)
 NEW_USER=$(cat /tmp/new_username.txt)    
 
 # not copying any file for now
+# Net-install creates the file /tmp/run_once in live environment (need to be transfered to installed system) so it can be used to detect install option
 
 arch_chroot(){
 # Use chroot not arch-chroot because of the way calamares mounts partitions
