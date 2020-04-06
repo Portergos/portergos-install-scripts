@@ -92,27 +92,10 @@ _clean_offline_packages(){
 
 }
 
-do_clean_offline_installer(){
 
-# cli installer
-rm -rf /vomi 2>>/tmp/.errlog
-#rm -rf ${BYPASS} 2>>/tmp/.errlog
-rm -rf /source 2>>/tmp/.errlog
-rm -rf /src 2>>/tmp/.errlog
-rmdir /bypass 2>>/tmp/.errlog
-rmdir /src 2>>/tmp/.errlog
-rmdir /source 2>>/tmp/.errlog
-rm -rf /offline_installer
+_portergos(){
 
-# calamares installer
-# not ready yet
-pacman -Rns calamares_offline --noconfirm
-
-}
-
-do_portergos(){
-
-do_clean_offline_installer
+_clean_offline_packages
 
 export DISPLAY=:0.0
 dbus-launch dconf load / < /etc/skel/dconf.conf
@@ -208,9 +191,12 @@ _clean_up(){
 ########## SCRIPT STARTS HERE ##########
 ########################################
 
-_check_install_mode
+#_check_install_mode
+_clean_archiso
+_sed_stuff
+_clean_offline_packages
 _common_systemd
-do_portergos
+_portergos
 _vbox
 _clean_up
 
