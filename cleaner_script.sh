@@ -1,34 +1,13 @@
 #!/bin/bash
 
-# Made by fernandomaroto for EndeavourOS and Portergos
+# Made by fernandomaroto for Portergos
 
 # Adapted from AIS. An excellent bit of code!
 
-# Super ugly command now :(
-# If multiples partitions are used
+chroot_path=$(cat /tmp/chrootpath.txt)
+NEW_USER=$(cat /tmp/new_username.txt)    
 
-#if [ -f ~/.agenda ];then echo sim; else echo no; fi
-
-
-#chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
-
-    chroot_path=$(cat /tmp/chrootpath.txt)
-    NEW_USER=$(cat /tmp/new_username.txt)    
-_tmp(){
-if [ -f /tmp/chrootpath.txt ]
-then 
-    chroot_path=$(cat /tmp/chrootpath.txt)
-else 
-    chroot_path=$(lsblk |grep "calamares-root" |awk '{ print $NF }' |sed -e 's/\/tmp\///' -e 's/\/.*$//' |tail -n1)
-fi
-
-if [ -f /tmp/new_username.txt ]
-then
-    NEW_USER=$(cat /tmp/new_username.txt)
-else
-    NEW_USER=$(compgen -u |tail -n -1)
-fi
-}
+# not copying any file for now
 
 arch_chroot(){
 # Use chroot not arch-chroot because of the way calamares mounts partitions
@@ -38,18 +17,6 @@ arch_chroot(){
 # Anything to be executed outside chroot need to be here.
 
 # Copy any file from live environment to new system
-
-_non_encrypted(){
-
-# Alternative methods
-#NEW_USER=$(ls $chroot_path/home |grep -v "lost+found" |)
-#local NEW_USER=$(head -n1 $chroot_path/etc/sudoers.d/10-installer | awk '{print $1}')
-local NEW_USER=$(cat /tmp/$chroot_path/etc/passwd | grep "/home" |cut -d: -f1 |head -1)
-cp -rf /etc/skel/.bashrc /tmp/$chroot_path/home/$NEW_USER/.bashrc
-chown -R $NEW_USER:users /tmp/$chroot_path/home/$NEW_USER/.bashrc
-
-}
-
 
 _copy_files(){
 
@@ -70,10 +37,12 @@ _copy_files(){
 
 }
 
-_copy_files
+_non_vanilla(){
 
-lsblk |grep "crypt" >/dev/null
-if [ "$?" != 0 ]; then _non_encrypted; fi
+cp -rf /etc/skel/.bashrc /tmp/$chroot_path/home/$NEW_USER/.bashrc
+chown -R $NEW_USER:users /tmp/$chroot_path/home/$NEW_USER/.bashrc
+
+}
 
 # For chrooted commands edit the script bellow directly
 arch_chroot "/usr/bin/chrooted_cleaner_script.sh"
